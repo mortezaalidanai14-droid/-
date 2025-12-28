@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نمایش منظومهٔ سیاره‌ای</title>
+<style>
+  body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+  #infoPanel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fff; padding: 10px; border-radius: 8px; max-width: 300px; }
+</style>
+</head>
+<body>
+<div id="infoPanel">برای دیدن جزئیات، یک سیاره یا قمر را انتخاب کنید</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 10000); camera.position.set(0, 500, 2000);
+
+const renderer = new THREE.WebGLRenderer({antialias: true}); renderer.setSize(window.innerWidth, window.innerHeight); document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enablePan = false;
+
+// نور ستاره const light = new THREE.PointLight(0xffffff, 2); light.position.set(0,0,0); scene.add(light);
+
+// ستاره اصلی const starGeometry = new THREE.SphereGeometry(100, 64, 64); const starMaterial = new THREE.MeshBasicMaterial({color: 0xffddaa}); const star = new THREE.Mesh(starGeometry, starMaterial); scene.add(star);
+
+// اطلاعات اجرام const celestialBodies = [ { name: 'سیاره شما', radius: 150, distance: 400, color: 0x228B22, description: 'بیشتر خشکی، اقیانوس‌های متوسط، اقلیم‌های مختلف، قطب‌های بزرگ', mesh: null }, { name: 'قمر سیاره شما', radius: 50, distance: 200, color: 0x800080, description: 'قمر بزرگ بنفش رنگ، دارای حلقه نازک سنگی', mesh: null }, { name: 'سیاره من', radius: 120, distance: 700, color: 0x1E90FF, description: 'بیشتر اقیانوس، خشکی محدود، اقلیم گرمسیری، دریاهای عمیق', mesh: null }, { name: 'قمر سیاره من', radius: 30, distance: 100, color: 0xAAAAFF, description: 'قمر کوچک و سرد، دور سیاره من می‌چرخد', mesh: null } ];
+
+// اضافه کردن اجرام celestialBodies.forEach(body => { const geom = new THREE.SphereGeometry(body.radius, 64, 64); const mat = new THREE.MeshStandardMaterial({color: body.color}); const mesh = new THREE.Mesh(geom, mat); mesh.position.x = body.distance; scene.add(mesh); body.mesh = mesh; });
+
+// حلقه برای قمر سیاره شما const ringGeometry = new THREE.RingGeometry(55, 60, 64); const ringMaterial = new THREE.MeshBasicMaterial({color: 0x888888, side: THREE.DoubleSide}); const ring = new THREE.Mesh(ringGeometry, ringMaterial); ring.rotation.x = Math.PI / 2; ring.position.x = 400 + 200; scene.add(ring);
+
+// انتخاب اجرام با کلیک const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(); window.addEventListener('click', event => { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = -(event.clientY / window.innerHeight) * 2 + 1; raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(celestialBodies.map(b => b.mesh)); if(intersects.length > 0){ const selected = celestialBodies.find(b => b.mesh === intersects[0].object); document.getElementById('infoPanel').innerHTML = <strong>${selected.name}</strong><br>${selected.description}; } });
+
+function animate(){ requestAnimationFrame(animate); celestialBodies.forEach(b => { b.mesh.rotation.y += 0.002; }); renderer.render(scene, camera); } animate();
+
+window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }); </script>
+
+</body>
+</html>
